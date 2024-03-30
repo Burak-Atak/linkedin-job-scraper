@@ -1,1 +1,2 @@
-web: gunicorn linkedin_job_scraper.wsgi --timeout 60
+release: python manage.py migrate
+web: gunicorn linkedin.wsgi
