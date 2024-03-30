@@ -1,1 +1,1 @@
-web: gunicorn app.wsgi --timeout 60
+web: gunicorn linkedin_job_scraper.wsgi --timeout 60
