@@ -5,6 +5,7 @@ from linkedin_api import Linkedin
 from address.service import CityService
 from company.service import CompanyService
 from jobs.models import Job
+from requests.cookies import RequestsCookieJar
 
 
 class JobsService:
@@ -13,8 +14,12 @@ class JobsService:
         if not hasattr(cls, 'instance'):
             username = settings.LINKEDIN_USERNAME
             password = settings.LINKEDIN_PASSWORD
+            cookie_dict = settings.LINKEDIN_COOKIES
+            cookies = RequestsCookieJar()
+            for cookie in cookie_dict:
+                cookies.set(cookie, cookie_dict[cookie])
             cls.instance = super(JobsService, cls).__new__(cls)
-            cls.api = Linkedin(username, password)
+            cls.api = Linkedin(username, password, cookies=cookies)
         return cls.instance
 
     @classmethod
