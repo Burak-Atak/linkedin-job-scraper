@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from django.utils.timezone import make_aware
 from django.conf import settings
@@ -14,7 +15,7 @@ class JobsService:
         if not hasattr(cls, 'instance'):
             username = settings.LINKEDIN_USERNAME
             password = settings.LINKEDIN_PASSWORD
-            cookie_dict = settings.LINKEDIN_COOKIES
+            cookie_dict = json.loads(settings.LINKEDIN_COOKIES)
             cookies = RequestsCookieJar()
             for cookie in cookie_dict:
                 cookies.set(cookie, cookie_dict[cookie])
