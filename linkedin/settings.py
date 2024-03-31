@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import environ
+import sentry_sdk
 
 env = environ.Env()
 
@@ -137,3 +138,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 LINKEDIN_USERNAME = env('LINKEDIN_USERNAME')
 LINKEDIN_PASSWORD = env('LINKEDIN_PASSWORD')
 LINKEDIN_COOKIES = env('LINKEDIN_COOKIES')
+
+if not DEBUG:
+    SENTRY_DSN = env('SENTRY_DSN')
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
+            'CONN_MAX_AGE': 600,
+        }
+    }
