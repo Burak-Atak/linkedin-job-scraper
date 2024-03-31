@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 from django.utils.timezone import make_aware
 from django.conf import settings
@@ -7,6 +8,8 @@ from address.service import CityService
 from company.service import CompanyService
 from jobs.models import Job
 from requests.cookies import RequestsCookieJar
+
+logger = logging.getLogger(__name__)
 
 
 class JobsService:
@@ -110,8 +113,11 @@ class JobsService:
             if not jobs:
                 break
             for job in jobs:
-                job_id = job.get('trackingUrn').split(':')[-1]
-                job_details = cls.get_job_details(job_id)
-                job = cls.create_job(job_details)
+                try:
+                    job_id = job.get('trackingUrn').split(':')[-1]
+                    job_details = cls.get_job_details(job_id)
+                    job = cls.create_job(job_details)
+                except Exception as e:
+                    logger.error(f"Error creating job: {e}", exc_info=True)
 
             offset += limit

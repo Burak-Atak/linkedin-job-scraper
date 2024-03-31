@@ -9,10 +9,11 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
-
+import logging
 import os
 import environ
 import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 env = environ.Env()
 
@@ -145,6 +146,11 @@ if not DEBUG:
         dsn=SENTRY_DSN,
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
+    )
+
+    sentry_logging = LoggingIntegration(
+        level=logging.ERROR,
+        event_level=logging.ERROR
     )
 
     DATABASES = {
