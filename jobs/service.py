@@ -23,6 +23,13 @@ class JobsService:
             cls.api = Linkedin(username, password, cookies=cookies)
         return cls.instance
 
+    def bulk_update_status(self, data):
+        job_ids = data.get('job_ids')
+        status = data.get('status')
+        Job.objects.filter(id__in=job_ids).update(status=status)
+
+        return {"message": "Status updated successfully"}
+
     @classmethod
     def create_job(cls, data):
         city = CityService.get_or_create_city(data.pop('city'))

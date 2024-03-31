@@ -32,4 +32,5 @@ urlpatterns = [
     path(r'api/', include('api.urls')),
     path(r'docs/', schema_view.with_ui('swagger', cache_timeout=0), name='docs'),
     path(r'accounts/', include('django.contrib.auth.urls')),
+    path(r'', include('jobs.urls')),
 ]
