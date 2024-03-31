@@ -1,5 +1,7 @@
 import json
 import logging
+import random
+import time
 from datetime import datetime
 from django.utils.timezone import make_aware
 from django.conf import settings
@@ -105,19 +107,21 @@ class JobsService:
 
     @classmethod
     def scrape_jobs(cls, keywords, **kwargs):
+        is_continue = True
         listed_at = kwargs.pop('listed_at', 24 * 60 * 60)
         limit = kwargs.pop('limit', 25)
         offset = kwargs.pop('offset', 0)
-        while True:
-            jobs = cls.api.search_jobs(keywords, listed_at=listed_at, limit=limit, offset=offset, **kwargs)
-            if not jobs:
-                break
-            for job in jobs:
-                try:
-                    job_id = job.get('trackingUrn').split(':')[-1]
-                    job_details = cls.get_job_details(job_id)
-                    job = cls.create_job(job_details)
-                except Exception as e:
-                    logger.error(f"Error creating job: {e}", exc_info=True)
+        jobs = cls.api.search_jobs(keywords, listed_at=listed_at, limit=limit, offset=offset, **kwargs)
+        if not jobs:
+            is_continue = False
 
-            offset += limit
+        for job in jobs:
+            try:
+                job_id = job.get('trackingUrn').split(':')[-1]
+                job_details = cls.get_job_details(job_id)
+                job = cls.create_job(job_details)
+                time.sleep(random.uniform(5, 8))
+            except Exception as e:
+                logger.error(f"Error creating job: {e}", exc_info=True)
+
+        return is_continue
