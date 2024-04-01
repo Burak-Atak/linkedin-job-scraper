@@ -75,19 +75,24 @@ class JobsService:
                 company = included.get('name')"""
         company_details = job_details.get('companyDetails')
         if company_details:
-            key = list(company_details.keys())[0]
-            company_name = company_details[key].get("companyResolutionResult").get("name")
-            logos = (company_details[key].get("companyResolutionResult")
-                     .get("logo").get('image')
-                     .get('com.linkedin.common.VectorImage')
-                     .get('artifacts'))
+            logo_url = None
+            company_name = ""
+            try:
+                key = list(company_details.keys())[0]
+                company_name = company_details[key].get("companyResolutionResult").get("name")
+                logos = (company_details[key].get("companyResolutionResult")
+                         .get("logo").get('image')
+                         .get('com.linkedin.common.VectorImage')
+                         .get('artifacts'))
 
-            logo_path = sorted(logos, key=lambda x: x.get('width'))[0]["fileIdentifyingUrlPathSegment"]
-            root_url = (company_details[key].get("companyResolutionResult")
-                        .get("logo").get('image')
-                        .get('com.linkedin.common.VectorImage')
-                        .get('rootUrl'))
-            logo_url = f"{root_url}{logo_path}"
+                logo_path = sorted(logos, key=lambda x: x.get('width'))[0]["fileIdentifyingUrlPathSegment"]
+                root_url = (company_details[key].get("companyResolutionResult")
+                            .get("logo").get('image')
+                            .get('com.linkedin.common.VectorImage')
+                            .get('rootUrl'))
+                logo_url = f"{root_url}{logo_path}"
+            except Exception as e:
+                logger.error(f"Error getting company details: {e}")
             company = {
                 'name': company_name,
                 'logo': logo_url
