@@ -17,7 +17,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
     service = CompanyService()
     filter_backends = [OrderingFilter]
     ordering_fields = '__all__'
-    filter_class = CompanyFilter
+    filterset_class = CompanyFilter
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):

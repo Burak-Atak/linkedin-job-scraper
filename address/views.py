@@ -16,7 +16,7 @@ class CityViewSet(viewsets.ModelViewSet):
     service = CityService()
     filter_backends = [OrderingFilter]
     ordering_fields = '__all__'
-    filter_class = CityFilter
+    filterset_class = CityFilter
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
