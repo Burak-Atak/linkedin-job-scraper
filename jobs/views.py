@@ -21,27 +21,16 @@ class JobViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows jobs to be viewed or edited.
     """
-    queryset = Job.objects.all()
+    queryset = Job.objects.select_related('company', 'city').order_by('-date_posted')
     serializer_class = JobSerializer
     service = JobsService()
     filter_backends = [OrderingFilter, DjangoFilterBackend]
-    filter_class = JobFilter
+    filterset_class = JobFilter
     ordering_fields = '__all__'
     serializer_action_classes = {
         'detailed': JobSerializerDetailed
     }
     permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_queryset(self):
-        """
-        Return the list of items for this view.
-        """
-        queryset = self.queryset
-
-        if self.action == 'detailed':
-            queryset = Job.objects.select_related('company', 'city')
-
-        return queryset
 
     def get_serializer_class(self):
         """
