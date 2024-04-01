@@ -122,6 +122,6 @@ class JobsService:
                 job = cls.create_job(job_details)
                 time.sleep(random.uniform(5, 8))
             except Exception as e:
-                logger.error(f"Error creating job: {e}", exc_info=True)
+                logger.error(f"Error creating job: Job id: {job_id}\n{e}", exc_info=True)
 
         return is_continue
