@@ -85,7 +85,7 @@
                         <span style="margin-left: 5px;">{{ job.company.name }}</span>
                     </td>
                     <td>
-                        <a href="{{ job.url }}" onclick="makeViewed(this, '{{ job.id }}',  '{{ job.status }}')"
+                        <a href="{{ job.url }}" onmousedown="makeViewed(this, '{{ job.id }}',  '{{ job.status }}')"
                            target="_blank">{{ job.title }}</a>
                     </td>
                     <td style="white-space: nowrap;">{{ job.city.name }}</td>
