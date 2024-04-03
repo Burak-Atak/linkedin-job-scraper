@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.utils.urls import replace_query_param, remove_query_param
 from rest_framework.views import APIView
 
 from api.permissions import IsAuthenticatedOrReadOnly
@@ -66,4 +67,17 @@ class JobTemplateView(APIView):
                 filter_query |= Q(title__icontains=keyword) | Q(description__icontains=keyword)
             self.queryset = self.queryset.filter(filter_query)
         page = self.paginator.paginate_queryset(self.queryset, request)
-        return self.paginator.get_paginated_response(page)
+        response = self.paginator.get_paginated_response(page)
+        request_url = request.build_absolute_uri()
+        first = None
+        if (self.paginator.page_query_param in request.query_params
+                and request.query_params[self.paginator.page_query_param] != "1"):
+            first = remove_query_param(request_url, self.paginator.page_query_param)
+
+        last = None
+        if self.paginator.page.has_next():
+            last = replace_query_param(request_url, self.paginator.page_query_param,
+                                       self.paginator.last_page_strings[0])
+        response.data['first'] = first
+        response.data['last'] = last
+        return response
