@@ -92,7 +92,7 @@ class JobsService:
                             .get('rootUrl'))
                 logo_url = f"{root_url}{logo_path}"
             except Exception as e:
-                logger.error(f"Error getting company details: {e}")
+                logger.info(f"Error getting company details: {e}")
             company = {
                 'name': company_name,
                 'logo': logo_url
