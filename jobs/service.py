@@ -20,10 +20,7 @@ class JobsService:
         if not hasattr(cls, 'instance'):
             username = settings.LINKEDIN_USERNAME
             password = settings.LINKEDIN_PASSWORD
-            cookie_dict = json.loads(settings.LINKEDIN_COOKIES)
-            cookies = RequestsCookieJar()
-            for cookie in cookie_dict:
-                cookies.set(cookie, cookie_dict[cookie])
+            cookies = cls._get_cookies()
             cls.instance = super(JobsService, cls).__new__(cls)
             cls.api = Linkedin(username, password, cookies=cookies)
         return cls.instance
@@ -40,7 +37,7 @@ class JobsService:
         city = CityService.get_or_create_city(data.pop('city'))
         company = CompanyService.get_or_create_company(data.pop('company'))
         linkedin_job_id = data.pop('linkedin_job_id')
-        job, created = Job.objects.get_or_create(linkedin_job_id=linkedin_job_id, defaults={
+        job, created = Job.objects.update_or_create(linkedin_job_id=linkedin_job_id, defaults={
             **data,
             'city': city,
             'company': company
@@ -58,6 +55,8 @@ class JobsService:
     @classmethod
     def parse_job_details(cls, job_details):
         company = {}
+        if "data" in job_details:
+            job_details = job_details.get("data")
         title = job_details.get('title')
         description = job_details.get('description').get('text')
         work_type = job_details.get('workplaceTypes')[0].split(":")[-1] if job_details.get('workplaceTypes') else None
@@ -112,6 +111,7 @@ class JobsService:
 
     @classmethod
     def scrape_jobs(cls, keywords, **kwargs):
+        cls.api.client.session.cookies = cls._get_cookies()
         is_continue = True
         listed_at = kwargs.pop('listed_at', 24 * 60 * 60)
         limit = kwargs.pop('limit', 25)
@@ -119,9 +119,12 @@ class JobsService:
         jobs = cls.api.search_jobs(keywords, listed_at=listed_at, limit=limit, offset=offset, **kwargs)
         if not jobs:
             is_continue = False
+        else:
+            logger.info(f"Scraped {len(jobs)} jobs")
 
         for job in jobs:
             try:
+                cls.api.client.session.cookies = cls._get_cookies()
                 job_id = job.get('trackingUrn').split(':')[-1]
                 job_details = cls.get_job_details(job_id)
                 job = cls.create_job(job_details)
@@ -130,3 +133,12 @@ class JobsService:
                 logger.error(f"Error creating job: Job id: {job_id}\n{e}", exc_info=True)
 
         return is_continue
+
+    @classmethod
+    def _get_cookies(cls):
+        cookie_dict = json.loads(settings.LINKEDIN_COOKIES)
+        cookies = RequestsCookieJar()
+        for cookie in cookie_dict:
+            cookies.set(cookie, cookie_dict[cookie])
+
+        return cookies
