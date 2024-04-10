@@ -50,8 +50,8 @@
 
             {% if user.is_authenticated %}
             <button class="btn btn-primary mr-2" onclick="selectAll()">Select All</button>
-            <button class="btn btn-primary mr-2" onclick="changeStatus('3')">Mark as Applied</button>
-            <button class="btn btn-primary mr-2" onclick="changeStatus('4')">Mark as Ignored</button>
+            <button class="btn btn-primary mr-2" onclick="changeStatus(null, '3')">Mark as Applied</button>
+            <button class="btn btn-primary mr-2" onclick="changeStatus(null, '4')">Mark as Ignored</button>
             {% endif %}
         </div>
     </div>
@@ -146,6 +146,16 @@
 
     function changeStatus(jobIds, status) {
         // Send a POST request to update the status of selected jobs
+        if (!jobIds) {
+            jobIds = [];
+            document.querySelectorAll('input[name="job-select"]:checked').forEach(function (checkbox) {
+                jobIds.push(checkbox.value);
+                checkbox.checked = false;
+            });
+        }
+        if (!jobIds.length) {
+            return;
+        }
         fetch('/api/jobs/bulk_update_status/', {
             method: 'POST',
             headers: {
