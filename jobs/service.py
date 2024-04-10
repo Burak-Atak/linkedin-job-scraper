@@ -1,15 +1,13 @@
-import json
 import logging
 import random
 import time
 from datetime import datetime
 from django.utils.timezone import make_aware
 from django.conf import settings
-from linkedin_api import Linkedin
 from address.service import CityService
 from company.service import CompanyService
 from jobs.models import Job
-from requests.cookies import RequestsCookieJar
+from special_linkedin_api.special_linkedin_api import SpecialLinkedinApi
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +18,8 @@ class JobsService:
         if not hasattr(cls, 'instance'):
             username = settings.LINKEDIN_USERNAME
             password = settings.LINKEDIN_PASSWORD
-            cookies = cls._get_cookies()
             cls.instance = super(JobsService, cls).__new__(cls)
-            cls.api = Linkedin(username, password, cookies=cookies)
+            cls.api = SpecialLinkedinApi(username, password)
         return cls.instance
 
     def bulk_update_status(self, data):
@@ -111,7 +108,6 @@ class JobsService:
 
     @classmethod
     def scrape_jobs(cls, keywords, **kwargs):
-        cls.api.client.session.cookies = cls._get_cookies()
         is_continue = True
         listed_at = kwargs.pop('listed_at', 24 * 60 * 60)
         limit = kwargs.pop('limit', 25)
@@ -124,7 +120,6 @@ class JobsService:
 
         for job in jobs:
             try:
-                cls.api.client.session.cookies = cls._get_cookies()
                 job_id = job.get('trackingUrn').split(':')[-1]
                 job_details = cls.get_job_details(job_id)
                 job = cls.create_job(job_details)
@@ -133,12 +128,3 @@ class JobsService:
                 logger.error(f"Error creating job: Job id: {job_id}\n{e}", exc_info=True)
 
         return is_continue
-
-    @classmethod
-    def _get_cookies(cls):
-        cookie_dict = json.loads(settings.LINKEDIN_COOKIES)
-        cookies = RequestsCookieJar()
-        for cookie in cookie_dict:
-            cookies.set(cookie, cookie_dict[cookie])
-
-        return cookies
