@@ -1,5 +1,9 @@
 #!/bin/bash
 
+python3.9 -m venv venv
+
+# activate the virtual environment
+source venv/bin/activate
 # Install dependencies
 echo "Installing dependencies"
 pip install -r requirements.txt
