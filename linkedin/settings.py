@@ -164,3 +164,5 @@ if not DEBUG:
             'CONN_MAX_AGE': 600,
         }
     }
+
+ALLOWED_HOSTS = ['.vercel.app', 'localhost']
