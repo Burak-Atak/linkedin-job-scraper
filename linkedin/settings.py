@@ -82,10 +82,19 @@ WSGI_APPLICATION = 'linkedin.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}"""
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': "linkedin-local",
+        'USER': "akinon",
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -166,3 +175,19 @@ if not DEBUG:
     }
 
 ALLOWED_HOSTS = ['.vercel.app', 'localhost']
+
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+
+BROKER_URL = 'redis://127.0.0.1:6379/1'
+
+CACHE_BACKEND_URL = 'redis://127.0.0.1:6379/0'
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": CACHE_BACKEND_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}

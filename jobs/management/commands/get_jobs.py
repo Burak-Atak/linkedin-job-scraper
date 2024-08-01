@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand, CommandError
-from jobs.service import JobsService
+from django.core.management.base import BaseCommand
+from tasks import get_linkedin_jobs
 
 
 class Command(BaseCommand):
@@ -12,18 +12,6 @@ class Command(BaseCommand):
         parser.add_argument('--listed_at', nargs='?', default=24 * 60 * 60)
         parser.add_argument('--location_name', nargs='?', default=None)
 
-    def handle(self, *args, **options):
-        keywords = options.get('keywords')
-        limit = int(options.get('limit'))
-        offset = int(options.get('offset'))
-        location_name = options.get('location_name')
-        listed_at = int(options.get('listed_at'))
+    def handle(self, *args, **kwargs):
+        get_linkedin_jobs.delay(kwargs=kwargs)
 
-        job_service = JobsService()
-
-        while True:
-            is_continue = job_service.scrape_jobs(keywords, limit=limit, offset=offset, location_name=location_name,
-                                                  listed_at=listed_at)
-            if not is_continue:
-                break
-            offset += limit
