@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tasks import get_linkedin_jobs
+from jobs.tasks import get_linkedin_jobs
 
 
 class Command(BaseCommand):
@@ -11,7 +11,7 @@ class Command(BaseCommand):
         parser.add_argument('--offset', nargs='?', default=0)
         parser.add_argument('--listed_at', nargs='?', default=24 * 60 * 60)
         parser.add_argument('--location_name', nargs='?', default=None)
+        parser.add_argument('--force', action='store_true', help='Force the operation.')
 
     def handle(self, *args, **kwargs):
-        get_linkedin_jobs.delay(kwargs=kwargs)
-
+        get_linkedin_jobs.delay(*args, **kwargs)

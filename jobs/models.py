@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from enumfields.fields import EnumField
 from .enums import WorkType, JobStatus
 
@@ -22,3 +23,6 @@ class Job(models.Model):
 
     class Meta:
         app_label = 'jobs'
+
+    def is_recently_updated(self):
+        return timezone.now() - self.modified_at < timezone.timedelta(days=5)

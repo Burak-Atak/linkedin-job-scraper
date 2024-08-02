@@ -116,11 +116,13 @@ class JobsService:
         if not jobs:
             is_continue = False
         else:
-            logger.info(f"Scraped {len(jobs)} jobs")
+            logger.info(f"Scraped {len(jobs)} jobs - listed_at: {listed_at} - offset: {offset} - limit: {limit} - keywords: {keywords} ")
 
         for job in jobs:
             try:
                 job_id = job.get('trackingUrn').split(':')[-1]
+                if not cls.should_scrape(job_id):
+                    continue
                 job_details = cls.get_job_details(job_id)
                 job = cls.create_job(job_details)
                 time.sleep(random.uniform(5, 8))
@@ -128,3 +130,11 @@ class JobsService:
                 logger.error(f"Error creating job: Job id: {job_id}\n{e}", exc_info=True)
 
         return is_continue
+
+    @classmethod
+    def should_scrape(cls, linkedin_job_id):
+        job = Job.objects.filter(linkedin_job_id=linkedin_job_id).first()
+
+        if job and job.is_recently_updated():
+            return False
+        return True
