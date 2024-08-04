@@ -92,8 +92,11 @@ WSGI_APPLICATION = 'linkedin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': "linkedin-local",
-        'USER': "akinon",
+        'NAME': env('DB_NAME', default='linkedin-local'),
+        'USER': env('DB_USER', default='akinon'),
+        'HOST': env('DB_HOST', default='localhost'),
+        'PORT': env('DB_PORT', default='5432'),
+        'PASSWORD': env('DB_PASSWORD', default='postgresql'),
         'CONN_MAX_AGE': 600,
     }
 }
@@ -179,7 +182,7 @@ ALLOWED_HOSTS = ['.vercel.app', 'localhost']
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 
-CACHE_BACKEND_URL = 'redis://127.0.0.1:6379/0'
+CACHE_BACKEND_URL = env('CACHE_BACKEND_URL', default='redis://127.0.0.1:6379/0')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -190,7 +193,7 @@ CACHES = {
     }
 }
 
-BROKER_URL = 'redis://127.0.0.1:6379/1'
+BROKER_URL = env('BROKER_URL', default='redis://127.0.0.1:6379/1')
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -200,28 +203,23 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'app.log'),
-        },
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
     },
     'root': {
-        'handlers': ['file', 'console'],
+        'handlers': ['console'],
         'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['file', 'console'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': True,
         },
         'linkedin': {
-            'handlers': ['file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
