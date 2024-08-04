@@ -63,24 +63,5 @@ CELERYBEAT_SCHEDULE = {
             'listed_at': 25 * 60 * 60,
         },
     },
-    'get_linkedin_jobs-cron_6': {
-        'task': 'jobs.tasks.get_linkedin_jobs',  # NOQA
-        'schedule': get_random_number(),
-        'args': (),
-        'kwargs': {
-            'keywords': 'yazılım geliştirici',
-            'location_name': 'Türkiye',
-            'listed_at': 25 * 60 * 60,
-        },
-    },
-    'get_linkedin_jobs-cron_7': {
-        'task': 'jobs.tasks.get_linkedin_jobs',  # NOQA
-        'schedule': get_random_number(),
-        'args': (),
-        'kwargs': {
-            'keywords': 'yazılım mühendisi',
-            'location_name': 'Türkiye',
-            'listed_at': 25 * 60 * 60,
-        },
-    },
+
 }
