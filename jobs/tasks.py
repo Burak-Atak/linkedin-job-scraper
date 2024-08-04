@@ -49,7 +49,6 @@ def get_linkedin_jobs(*args, **kwargs):
             logger.info(f"Last run was {last_run_datetime}. Skipping this run.")
             return
     try:
-        logger.info("********************************************")
         logger.info(f"Starting linkedin scraping for '{keywords}'")
 
         limit = int(kwargs.get('limit', 25))
@@ -71,11 +70,9 @@ def get_linkedin_jobs(*args, **kwargs):
                 break
             offset += limit
 
-        cache.set(f'{formatted_keywords}_last_run_datetime', new_run_datetime)
-        logger.info("Linkedin scraping completed")
+        cache.set(f'{formatted_keywords}_last_run_datetime', new_run_datetime, timeout=None)
+        logger.info("****************** Linkedin scraping completed ******************")
+
 
     except SoftTimeLimitExceeded:
         logger.warning("Task exceeded soft time limit.")
-
-    finally:
-        logger.info("********************************************")
