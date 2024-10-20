@@ -49,7 +49,6 @@ def get_linkedin_jobs(*args, **kwargs):
             logger.info(f"Last run was {last_run_datetime}. Skipping this run.")
             return
     try:
-        logger.info(f"Starting linkedin scraping for '{keywords}'")
 
         limit = int(kwargs.get('limit', 25))
         offset = int(kwargs.get('offset', 0))
@@ -60,6 +59,9 @@ def get_linkedin_jobs(*args, **kwargs):
 
         last_run_diff_in_seconds = last_run_diff.total_seconds()
         listed_at = int(max(listed_at, last_run_diff_in_seconds)) + 3600
+        logger.info(f"Last run was {last_run_datetime}")
+        logger.info(f"Starting linkedin scraping for '{keywords}\nFrom: {listed_at}'")
+
         new_run_datetime = datetime.now()
 
         while True:
