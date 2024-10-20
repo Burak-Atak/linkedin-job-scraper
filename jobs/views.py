@@ -54,7 +54,7 @@ class JobViewSet(viewsets.ModelViewSet):
 
 # Template view
 class JobTemplateView(APIView):
-    queryset = Job.objects.all().select_related('company', 'city').order_by('-date_posted')
+    queryset = Job.objects.all().select_related('company', 'city').order_by('-modified_at')
     paginator = PageNumberPagination()
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'index.html'

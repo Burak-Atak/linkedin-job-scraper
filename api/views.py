@@ -1,3 +1,5 @@
+import http
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -23,5 +25,7 @@ class TaskView(APIView):
 
         if task:
             task.delay(*args, **kwargs)
+        else:
+            return Response({'status': 'error', 'message': 'Task not found'}, status=http.HTTPStatus.BAD_REQUEST)
 
         return Response({'status': 'ok'})
