@@ -31,7 +31,7 @@ class JobViewSet(viewsets.ModelViewSet):
     serializer_action_classes = {
         'detailed': JobSerializerDetailed
     }
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = []
 
     def get_serializer_class(self):
         """

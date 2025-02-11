@@ -48,11 +48,9 @@
             </div>
             <p style="font-size: larger;">Total Jobs: {{ count }}</p>
 
-            {% if user.is_authenticated %}
             <button class="btn btn-primary mr-2" onclick="selectAll()">Select All</button>
             <button class="btn btn-primary mr-2" onclick="changeStatus(null, '3')">Mark as Applied</button>
             <button class="btn btn-primary mr-2" onclick="changeStatus(null, '4')">Mark as Ignored</button>
-            {% endif %}
         </div>
     </div>
     <div class="row">
