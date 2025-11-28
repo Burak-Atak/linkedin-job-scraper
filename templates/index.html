@@ -32,6 +32,15 @@
         .ignored-row {
             background-color: #f8d7da; /* Light red */
         }
+        
+        .excluded-companies-badge {
+            margin-left: 5px;
+            padding: 2px 5px;
+            background-color: #f8d7da;
+            border-radius: 3px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -46,11 +55,16 @@
                     <button class="btn btn-primary mr-2" onclick="searchJobs()">Search</button>
                 </div>
             </div>
+            <div id="excludedCompaniesDisplay" class="mb-2">
+                <!-- Excluded companies will be displayed here -->
+            </div>
             <p style="font-size: larger;">Total Jobs: {{ count }}</p>
 
             <button class="btn btn-primary mr-2" onclick="selectAll()">Select All</button>
             <button class="btn btn-primary mr-2" onclick="changeStatus(null, '3')">Mark as Applied</button>
             <button class="btn btn-primary mr-2" onclick="changeStatus(null, '4')">Mark as Ignored</button>
+            <button class="btn btn-danger mr-2" onclick="excludeSelectedCompanies()">Exclude Selected Companies</button>
+            <button class="btn btn-outline-secondary" onclick="clearExcludedCompanies()">Clear Excluded Companies</button>
         </div>
     </div>
     <div class="row">
@@ -71,7 +85,7 @@
                 <tbody>
                 {% for job in results %}
                 <tr class="{% if job.status == '2' %}viewed-row{% elif job.status == '3' %}applied-row{% elif job.status == '4' %}ignored-row{% else %}new-row{% endif %}"
-                    data-job-id="{{ job.id }}">
+                    data-job-id="{{ job.id }}" data-company-id="{{ job.company.id }}" data-company-name="{{ job.company.name }}">
                     <td style="text-align: center;">
                         <input type="checkbox" name="job-select" value="{{ job.id }}"
                                style="transform: scale(1.3); margin-right: 5px;">
@@ -135,6 +149,107 @@
 </div>
 
 <script>
+    // Load excluded companies from local storage when page loads
+    let excludedCompanies = [];
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        loadFiltersFromStorage();
+        displayExcludedCompanies();
+    });
+    
+    function loadFiltersFromStorage() {
+        // Load search term
+        const savedSearchTerm = localStorage.getItem('jobSearchTerm');
+        if (savedSearchTerm && !document.getElementById('searchInput').value) {
+            document.getElementById('searchInput').value = savedSearchTerm;
+        }
+        
+        // Load excluded companies
+        const savedExcludedCompanies = localStorage.getItem('excludedCompanies');
+        if (savedExcludedCompanies) {
+            try {
+                excludedCompanies = JSON.parse(savedExcludedCompanies);
+            } catch (e) {
+                console.error('Error parsing excluded companies from storage:', e);
+                excludedCompanies = [];
+            }
+        }
+    }
+    
+    function saveFiltersToStorage() {
+        // Save search term
+        const searchTerm = document.getElementById('searchInput').value;
+        localStorage.setItem('jobSearchTerm', searchTerm);
+        
+        // Save excluded companies
+        localStorage.setItem('excludedCompanies', JSON.stringify(excludedCompanies));
+    }
+    
+    function displayExcludedCompanies() {
+        const displayEl = document.getElementById('excludedCompaniesDisplay');
+        displayEl.innerHTML = '';
+        
+        if (excludedCompanies.length > 0) {
+            const label = document.createElement('span');
+            label.textContent = 'Excluded companies: ';
+            displayEl.appendChild(label);
+            
+            excludedCompanies.forEach(company => {
+                const badge = document.createElement('span');
+                badge.className = 'excluded-companies-badge';
+                badge.textContent = company.name + ' ×';
+                badge.setAttribute('data-company-id', company.id);
+                badge.onclick = function() {
+                    removeExcludedCompany(company.id);
+                };
+                displayEl.appendChild(badge);
+            });
+        }
+    }
+    
+    function excludeSelectedCompanies() {
+        const selected = document.querySelectorAll('input[name="job-select"]:checked');
+        if (selected.length === 0) {
+            alert('Please select at least one job to exclude its company.');
+            return;
+        }
+        
+        selected.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const companyId = row.getAttribute('data-company-id');
+            const companyName = row.getAttribute('data-company-name');
+            
+            // Check if company is already excluded
+            const exists = excludedCompanies.some(c => c.id === companyId);
+            if (!exists) {
+                excludedCompanies.push({
+                    id: companyId,
+                    name: companyName
+                });
+            }
+            
+            checkbox.checked = false;
+        });
+        
+        saveFiltersToStorage();
+        displayExcludedCompanies();
+        searchJobs();
+    }
+    
+    function removeExcludedCompany(companyId) {
+        excludedCompanies = excludedCompanies.filter(c => c.id !== companyId);
+        saveFiltersToStorage();
+        displayExcludedCompanies();
+        searchJobs();
+    }
+    
+    function clearExcludedCompanies() {
+        excludedCompanies = [];
+        saveFiltersToStorage();
+        displayExcludedCompanies();
+        searchJobs();
+    }
+
     function selectAll() {
         var checkboxes = document.querySelectorAll('input[name="job-select"]');
         checkboxes.forEach(function (checkbox) {
@@ -200,12 +315,22 @@
 
     function searchJobs() {
         const keywords = document.getElementById('searchInput').value;
-        let searchUrl; // Declare searchUrl variable outside the block
+        let searchUrl;
 
+        // Save search term to local storage
+        saveFiltersToStorage();
+        
+        // Build the URL with excluded companies
         if (keywords === '') {
             searchUrl = '/';
         } else {
             searchUrl = '/?keywords=' + encodeURIComponent(keywords);
+        }
+        
+        // Add excluded companies parameter if any
+        if (excludedCompanies.length > 0) {
+            const excludedIds = excludedCompanies.map(c => c.id).join(',');
+            searchUrl += (searchUrl.includes('?') ? '&' : '?') + 'exclude_companies=' + excludedIds;
         }
 
         window.location.href = searchUrl;

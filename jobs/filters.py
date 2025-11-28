@@ -12,5 +12,6 @@ class JobFilter(filters.FilterSet):
     date_posted = filters.DateFromToRangeFilter()
     city = filters.NumberFilter(field_name='city__id')
     company = filters.NumberFilter(field_name='company__id')
+    exclude_companies = filters.BaseInFilter(field_name='company__id', exclude=True)
     city__name = filters.CharFilter(lookup_expr='icontains')
     company__name = filters.CharFilter(lookup_expr='icontains')

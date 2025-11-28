@@ -13,7 +13,7 @@ services:
       - "host.docker.internal:host-gateway"
 
     env_file:
-        - .env
+        - .env_docker
 
   celery:
     image: linkedin-job-scraper
@@ -26,7 +26,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-
+    env_file:
+        - .env_docker
   celery-beat:
     image: linkedin-job-scraper
     restart: unless-stopped
@@ -38,5 +39,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    env_file:
+        - .env_docker
 
 

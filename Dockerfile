@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM python:3.11-alpine
 WORKDIR /app
-ENV DB_USER=akinon
+ENV DB_USER=postgres
 ENV DB_HOST=host.docker.internal
 ENV DB_PORT=5432
 ENV BROKER_URL=redis://host.docker.internal:6379/1
