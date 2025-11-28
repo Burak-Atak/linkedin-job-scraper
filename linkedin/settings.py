@@ -95,7 +95,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME', default='linkedin-local'),
-        'USER': env('DB_USER', default='akinon'),
+        'USER': env('DB_USER', default='admin'),
         'HOST': env('DB_HOST', default='localhost'),
         'PORT': env('DB_PORT', default='5432'),
         'PASSWORD': env('DB_PASSWORD', default='postgresql'),
