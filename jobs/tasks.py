@@ -2,6 +2,8 @@ from linkedin.celery import app
 from django.core.cache import cache
 from jobs.service import JobsService
 from datetime import datetime, timedelta
+import hashlib
+import json
 import logging
 from celery.exceptions import SoftTimeLimitExceeded
 from functools import wraps
@@ -9,6 +11,19 @@ from functools import wraps
 logger = logging.getLogger(__name__)
 
 TIMEOUT = 3600 * 3
+
+
+def _build_last_run_cache_key(args, kwargs):
+    # "force" controls skip behavior, not job identity; do not split cache keys on it.
+    identity_kwargs = dict(kwargs)
+    identity_kwargs.pop('force', None)
+    payload = {
+        'args': list(args),
+        'kwargs': identity_kwargs,
+    }
+    serialized_payload = json.dumps(payload, sort_keys=True, default=str, separators=(',', ':'))
+    payload_hash = hashlib.sha256(serialized_payload.encode('utf-8')).hexdigest()
+    return f'linkedin_jobs_last_run:{payload_hash}'
 
 
 def unique_task(callback, *decorator_args, **decorator_kwargs):
@@ -37,9 +52,8 @@ def unique_task(callback, *decorator_args, **decorator_kwargs):
 @unique_task
 def get_linkedin_jobs(*args, **kwargs):
     force = kwargs.get('force', False)
-    keywords = kwargs.get('keywords')
-    formatted_keywords = keywords.replace(' ', '_').lower()
-    last_run_datetime = cache.get(f'{formatted_keywords}_last_run_datetime') or datetime.now() - timedelta(
+    cache_key = _build_last_run_cache_key(args, kwargs)
+    last_run_datetime = cache.get(cache_key) or datetime.now() - timedelta(
         days=7)
     last_run_diff = datetime.now() - last_run_datetime
 
@@ -50,9 +64,9 @@ def get_linkedin_jobs(*args, **kwargs):
             return
     try:
 
-        limit = int(kwargs.get('limit', 25))
-        offset = int(kwargs.get('offset', 0))
-        location_name = kwargs.get('location_name')
+        keywords = kwargs.pop('keywords')
+        limit = int(kwargs.pop('limit', 25))
+        offset = int(kwargs.pop('offset', 0))
         listed_at = int(kwargs.get('listed_at', 0))
 
         job_service = JobsService()
@@ -66,13 +80,12 @@ def get_linkedin_jobs(*args, **kwargs):
 
         while True:
             is_continue = job_service.scrape_jobs(keywords, limit=limit, offset=offset,
-                                                  location_name=location_name,
-                                                  listed_at=listed_at)
+                                                  **kwargs)
             if not is_continue:
                 break
             offset += limit
 
-        cache.set(f'{formatted_keywords}_last_run_datetime', new_run_datetime, timeout=None)
+        cache.set(cache_key, new_run_datetime, timeout=None)
         logger.info("****************** Linkedin scraping completed ******************")
 
 

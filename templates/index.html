@@ -51,6 +51,17 @@
                 <input type="text" id="searchInput" class="form-control mr-2" placeholder="Search..."
                        style="max-width: 400px;" value="{{ request.GET.keywords|default_if_none:'' }}"
                        onkeydown="handleSearch(event)">
+                <select id="workTypeFilter" class="form-control mr-2" style="max-width: 200px;">
+                    <option value="">All work types</option>
+                    {% for option in work_type_options %}
+                    <option value="{{ option.0 }}" {% if request.GET.work_type == option.0 %}selected{% endif %}>
+                        {{ option.1|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="cityFilter" class="form-control mr-2" placeholder="City"
+                       style="max-width: 220px;" value="{{ request.GET.city|default_if_none:'' }}"
+                       onkeydown="handleSearch(event)">
                 <div class="input-group-append">
                     <button class="btn btn-primary mr-2" onclick="searchJobs()">Search</button>
                 </div>
@@ -163,6 +174,18 @@
         if (savedSearchTerm && !document.getElementById('searchInput').value) {
             document.getElementById('searchInput').value = savedSearchTerm;
         }
+
+        // Load work type
+        const savedWorkType = localStorage.getItem('jobWorkType');
+        if (savedWorkType && !document.getElementById('workTypeFilter').value) {
+            document.getElementById('workTypeFilter').value = savedWorkType;
+        }
+
+        // Load city
+        const savedCity = localStorage.getItem('jobCity');
+        if (savedCity && !document.getElementById('cityFilter').value) {
+            document.getElementById('cityFilter').value = savedCity;
+        }
         
         // Load excluded companies
         const savedExcludedCompanies = localStorage.getItem('excludedCompanies');
@@ -180,6 +203,10 @@
         // Save search term
         const searchTerm = document.getElementById('searchInput').value;
         localStorage.setItem('jobSearchTerm', searchTerm);
+
+        // Save work type and city filters
+        localStorage.setItem('jobWorkType', document.getElementById('workTypeFilter').value);
+        localStorage.setItem('jobCity', document.getElementById('cityFilter').value);
         
         // Save excluded companies
         localStorage.setItem('excludedCompanies', JSON.stringify(excludedCompanies));
@@ -315,25 +342,32 @@
 
     function searchJobs() {
         const keywords = document.getElementById('searchInput').value;
-        let searchUrl;
+        const workType = document.getElementById('workTypeFilter').value;
+        const city = document.getElementById('cityFilter').value;
+        const params = new URLSearchParams();
 
         // Save search term to local storage
         saveFiltersToStorage();
         
-        // Build the URL with excluded companies
-        if (keywords === '') {
-            searchUrl = '/';
-        } else {
-            searchUrl = '/?keywords=' + encodeURIComponent(keywords);
+        // Build URL query params
+        if (keywords) {
+            params.set('keywords', keywords);
+        }
+        if (workType) {
+            params.set('work_type', workType);
+        }
+        if (city) {
+            params.set('city', city);
         }
         
         // Add excluded companies parameter if any
         if (excludedCompanies.length > 0) {
             const excludedIds = excludedCompanies.map(c => c.id).join(',');
-            searchUrl += (searchUrl.includes('?') ? '&' : '?') + 'exclude_companies=' + excludedIds;
+            params.set('exclude_companies', excludedIds);
         }
 
-        window.location.href = searchUrl;
+        const queryString = params.toString();
+        window.location.href = queryString ? '/?' + queryString : '/';
     }
 
     function handleSearch(event) {

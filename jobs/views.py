@@ -14,6 +14,7 @@ from .models import Job
 from .service import JobsService
 from .serializers import JobSerializer, JobSerializerDetailed
 from .filters import JobFilter
+from .enums import WorkType
 from django.utils import timezone
 
 
@@ -61,20 +62,27 @@ class JobTemplateView(APIView):
     template_name = 'index.html'
 
     def get(self, request):
+        queryset = self.queryset
         keywords = request.GET.get('keywords')
+        work_type = request.GET.get('work_type')
+        city = request.GET.get('city')
         exclude_companies = request.GET.get('exclude_companies')
         modified_date = request.GET.get('modified_date') or timezone.now() - timezone.timedelta(days=14)
         if keywords:
             filter_query = Q()
             for keyword in keywords.split(","):
                 filter_query |= Q(title__icontains=keyword) | Q(description__icontains=keyword)
-            self.queryset = self.queryset.filter(filter_query)
+            queryset = queryset.filter(filter_query)
+        if work_type:
+            queryset = queryset.filter(work_type=work_type)
+        if city:
+            queryset = queryset.filter(city__name__iexact=city)
         if exclude_companies:
-            self.queryset = self.queryset.exclude(company_id__in=exclude_companies.split(","))
+            queryset = queryset.exclude(company_id__in=exclude_companies.split(","))
 
-        self.queryset = self.queryset.filter(modified_at__gte=modified_date)
+        queryset = queryset.filter(modified_at__gte=modified_date)
 
-        page = self.paginator.paginate_queryset(self.queryset, request)
+        page = self.paginator.paginate_queryset(queryset, request)
         response = self.paginator.get_paginated_response(page)
         request_url = request.build_absolute_uri()
         first = None
@@ -88,4 +96,5 @@ class JobTemplateView(APIView):
                                        self.paginator.last_page_strings[0])
         response.data['first'] = first
         response.data['last'] = last
+        response.data['work_type_options'] = WorkType.choices()
         return response
